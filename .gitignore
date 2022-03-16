@@ -1,0 +1,12 @@
+node_modules/
+build/
+dist/
+**/.DS_Store
+.vscode
+.env
+.DS_Store
+*~
+.idea
+.yarn
+*.css.map
+.log/
