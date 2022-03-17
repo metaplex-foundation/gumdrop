@@ -38,7 +38,7 @@ import {
   Token,
   TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
-import { notify } from '@oyster/common';
+import { notify } from '../utils/notifications';
 import BN from 'bn.js';
 import * as bs58 from 'bs58';
 import * as anchor from '@project-serum/anchor';
