@@ -74,6 +74,7 @@ programCommand('create')
     'transfer and candy: delegate tokens from KEYPAIR instead of transferring to the gumdrop',
   )
   .option('--candy-machine <pubkey>', 'candy: public key of the candy machine')
+  .option('--candy-freeze', 'candy: freeze the whitelist token accounts after claim')
   .option('--edition-mint <mint>', 'edition: mint of the master edition')
   .option(
     '--distribution-method <method>',
@@ -268,7 +269,7 @@ programCommand('create')
           : /* === edition */ claimInfo.masterMint.key;
     });
 
-    const instructions = await buildGumdrop(
+    const { instructions, signers } = await buildGumdrop(
       connection,
       wallet.publicKey,
       options.distributionMethod,
@@ -278,6 +279,9 @@ programCommand('create')
       temporalSigner,
       claimants,
       claimInfo,
+      // freeze tokens
+      // TODO: allow passing a multisig into candyFreeze?
+      options.candyMachine && options.candyFreeze,
     );
 
     const logDir = path.join(LOG_PATH, options.env, base.publicKey.toBase58());
@@ -287,6 +291,14 @@ programCommand('create')
     console.log(`writing base to ${keyPath}`);
     fs.writeFileSync(keyPath, JSON.stringify([...base.secretKey]));
 
+    // extra signers
+    for (const signer of signers) {
+      const pubkey = signer.publicKey.toBase58();
+      const keyPath = path.join(logDir, `${pubkey}.json`);
+      console.log(`writing ${pubkey} to ${keyPath}`);
+      fs.writeFileSync(keyPath, JSON.stringify([...signer.secretKey]));
+    }
+
     const urlPath = path.join(logDir, 'urls.json');
     console.log(`writing claims to ${urlPath}`);
     fs.writeFileSync(urlPath, JSON.stringify(urlAndHandleFor(claimants)));
@@ -295,7 +307,7 @@ programCommand('create')
       connection,
       wallet,
       instructions,
-      [base],
+      [base, ...signers],
     );
 
     console.log(createResult);

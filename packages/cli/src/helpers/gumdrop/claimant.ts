@@ -4,6 +4,7 @@ import {
   PublicKey,
   SystemProgram,
   TransactionInstruction,
+  SYSVAR_RENT_PUBKEY,
 } from '@solana/web3.js';
 import {
   AccountLayout,
@@ -18,6 +19,7 @@ import BN from 'bn.js';
 import * as bs58 from 'bs58';
 
 import {
+  getCandyMachineCreator,
   getEditionMarkPda,
   getMasterEdition,
   getTokenWallet,
@@ -518,8 +520,9 @@ export const buildGumdrop = async (
   temporalSigner: PublicKey,
   claimants: Claimants,
   claimInfo: ClaimInfo,
+  freezeTokens: boolean,
   extraParams: Array<string> = [],
-): Promise<Array<TransactionInstruction>> => {
+): Promise<{ instructions: Array<TransactionInstruction>, signers: Array<Keypair> }> => {
   const needsPin = commMethod !== 'wallets';
   const leafs: Array<Buffer> = [];
   for (let idx = 0; idx < claimants.length; ++idx) {
@@ -561,13 +564,72 @@ export const buildGumdrop = async (
     );
   }
 
-  const tree = new MerkleTree(leafs);
+  const hashFlags = freezeTokens ? 0x02 : 0x00;
+  const tree = new MerkleTree(leafs, hashFlags);
   const root = tree.getRoot();
 
   const [distributor, dbump] = await PublicKey.findProgramAddress(
     [Buffer.from('MerkleDistributor'), baseKey.toBuffer()],
     GUMDROP_DISTRIBUTOR_ID,
   );
+
+  const instructions = Array<TransactionInstruction>();
+  const signers = Array<Keypair>();
+  if (freezeTokens) {
+    const multisigAccount = Keypair.generate();
+    const multisigSize = 355; // Multisig::LEN
+    instructions.push(
+      SystemProgram.createAccount({
+        fromPubkey: walletKey,
+        newAccountPubkey: multisigAccount.publicKey,
+        lamports: await connection.getMinimumBalanceForRentExemption(multisigSize),
+        space: multisigSize,
+        programId: TOKEN_PROGRAM_ID,
+      }),
+    );
+
+    instructions.push(
+      new TransactionInstruction({
+        programId: TOKEN_PROGRAM_ID,
+        keys: [
+          { pubkey: multisigAccount.publicKey, isSigner: false, isWritable: true },
+          { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
+          //
+          // multisig signers
+          //
+          // candy machine
+          {
+            pubkey: (await getCandyMachineCreator(claimInfo.candyMachineKey))[0],
+            isSigner: false,
+            isWritable: false,
+          },
+          // gumdrop
+          { pubkey: distributor, isSigner: false, isWritable: false },
+          // initiating wallet
+          { pubkey: walletKey, isSigner: false, isWritable: false },
+          // base
+          { pubkey: baseKey, isSigner: false, isWritable: false },
+        ],
+        data: Buffer.from([
+          2, // InitializeMultisig
+          1, // number of signers required
+        ]),
+      }),
+    );
+
+    instructions.push(
+      Token.createSetAuthorityInstruction(
+        TOKEN_PROGRAM_ID,
+        claimInfo.mint.key,
+        multisigAccount.publicKey, // newAuthority
+        'FreezeAccount',
+        walletKey, // currentAuthority
+        [],
+      )
+    );
+
+    signers.push(multisigAccount);
+  }
 
   for (let idx = 0; idx < claimants.length; ++idx) {
     const proof = tree.getProof(idx);
@@ -597,6 +659,9 @@ export const buildGumdrop = async (
     } else if (claimIntegration === 'candy') {
       params.push(`candy=${claimInfo.candyMachineKey}`);
       params.push(`tokenAcc=${claimInfo.source}`);
+      if (freezeTokens) {
+        params.push(`freeze=${signers[0].publicKey.toBase58()}`);
+      }
     } else {
       params.push(`master=${claimInfo.masterMint.key}`);
       params.push(`edition=${claimant.edition}`);
@@ -607,7 +672,6 @@ export const buildGumdrop = async (
   }
 
   // initial merkle-distributor state
-  const instructions = Array<TransactionInstruction>();
   instructions.push(
     new TransactionInstruction({
       programId: GUMDROP_DISTRIBUTOR_ID,
@@ -734,7 +798,7 @@ export const buildGumdrop = async (
     );
   }
 
-  return instructions;
+  return { instructions, signers };
 };
 
 export const closeGumdrop = async (

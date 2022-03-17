@@ -1,14 +1,16 @@
 import { keccak_256 } from 'js-sha3';
 
 export class MerkleTree {
+  hashFlags: number;
   leafs: Array<Buffer>;
   layers: Array<Array<Buffer>>;
 
-  constructor(leafs: Array<Buffer>) {
+  constructor(leafs: Array<Buffer>, hashFlags: number) {
+    this.hashFlags = hashFlags;
     this.leafs = leafs.slice();
     this.layers = [];
 
-    let hashes = this.leafs.map(MerkleTree.nodeHash);
+    let hashes = this.leafs.map(data => MerkleTree.nodeHash(this.hashFlags, data));
     while (hashes.length > 0) {
       console.log('Hashes', this.layers.length, hashes);
       this.layers.push(hashes.slice());
@@ -23,8 +25,8 @@ export class MerkleTree {
     }
   }
 
-  static nodeHash(data: Buffer): Buffer {
-    return Buffer.from(keccak_256.digest([0x00, ...data]));
+  static nodeHash(hashFlags: number, data: Buffer): Buffer {
+    return Buffer.from(keccak_256.digest([hashFlags, ...data]));
   }
 
   static internalHash(first: Buffer, second: Buffer | undefined): Buffer {
@@ -59,16 +61,7 @@ export class MerkleTree {
   }
 
   verifyProof(idx: number, proof: Buffer[], root: Buffer): boolean {
-    let pair = MerkleTree.nodeHash(this.leafs[idx]);
-    for (const item of proof) {
-      pair = MerkleTree.internalHash(pair, item);
-    }
-
-    return pair.equals(root);
-  }
-
-  static verifyClaim(leaf: Buffer, proof: Buffer[], root: Buffer): boolean {
-    let pair = MerkleTree.nodeHash(leaf);
+    let pair = MerkleTree.nodeHash(this.hashFlags, this.leafs[idx]);
     for (const item of proof) {
       pair = MerkleTree.internalHash(pair, item);
     }

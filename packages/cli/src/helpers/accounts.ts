@@ -1,5 +1,6 @@
 import { Keypair, PublicKey } from '@solana/web3.js';
 import {
+  CANDY_MACHINE_PROGRAM_V2_ID,
   SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID,
   TOKEN_METADATA_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
@@ -68,6 +69,15 @@ export const getTokenWallet = async function (
       SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID,
     )
   )[0];
+};
+
+export const getCandyMachineCreator = async (
+  candyMachine: anchor.web3.PublicKey,
+): Promise<[anchor.web3.PublicKey, number]> => {
+  return await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from('candy_machine'), candyMachine.toBuffer()],
+    CANDY_MACHINE_PROGRAM_V2_ID,
+  );
 };
 
 export async function loadGumdropProgram(
