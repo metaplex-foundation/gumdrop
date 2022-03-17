@@ -11,6 +11,7 @@ import {
   TransactionInstruction,
   TransactionSignature,
 } from '@solana/web3.js';
+import { ENDPOINTS } from '../contexts/ConnectionContext';
 import log from 'loglevel';
 
 import { sleep } from './common';
@@ -28,10 +29,9 @@ export const getUnixTs = () => {
 
 export const envFor = (connection: Connection): string => {
   const endpoint = (connection as any)._rpcEndpoint;
-  const regex = /https:\/\/api.([^.]*).solana.com/;
-  const match = endpoint.match(regex);
-  if (match[1]) {
-    return match[1];
+  for (const e of ENDPOINTS) {
+    if (endpoint === e.url)
+      return e.name;
   }
   return 'mainnet-beta';
 };
