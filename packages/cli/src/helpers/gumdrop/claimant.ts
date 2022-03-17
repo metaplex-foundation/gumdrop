@@ -809,6 +809,7 @@ export const closeGumdrop = async (
   transferMint: string,
   candyMachineStr: string,
   masterMint: string,
+  freezeTokens: boolean,
 ): Promise<Array<TransactionInstruction>> => {
   const [distributorKey, dbump] = await PublicKey.findProgramAddress(
     [Buffer.from('MerkleDistributor'), base.publicKey.toBuffer()],
@@ -878,6 +879,40 @@ export const closeGumdrop = async (
           [],
         ),
       );
+    }
+  }
+
+  if (claimMethod === 'candy') {
+    const candyMachineKey = new PublicKey(candyMachineStr);
+
+    const candyMachine = await getCandyMachine(connection, candyMachineKey);
+    const whitelistMint = candyMachine.data.whitelistMintSettings.mint;
+    const { info: whitelistMintInfo } = await getMintInfo(connection, whitelistMint.toBase58());
+    if (whitelistMintInfo.freezeAuthority) {
+      const freezeAuthority = new PublicKey(whitelistMintInfo.freezeAuthority);
+      try {
+        // base has no SOL so this should be safe...
+        const token = new Token(connection, whitelistMint, TOKEN_PROGRAM_ID, base);
+        const multisig = await token.getMultisigInfo(freezeAuthority);
+
+        // set back from multisig to us
+        instructions.push(
+          Token.createSetAuthorityInstruction(
+            TOKEN_PROGRAM_ID,
+            whitelistMint,
+            walletKey, // newAuthority
+            'FreezeAccount',
+            freezeAuthority, // currentAuthority
+            [base],
+          )
+        );
+      } catch (err) {
+        const failMessage = `Failed to fetch freeze authority multisig: ${err.message}`;
+        if (freezeTokens)
+          throw new Error(failMessage);
+        else
+          console.warn(freezeTokens);
+      }
     }
   }
 

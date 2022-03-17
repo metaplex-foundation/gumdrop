@@ -334,6 +334,7 @@ programCommand('close')
   )
   .option('--transfer-mint <mint>', 'transfer: public key of mint')
   .option('--candy-machine <pubkey>', 'candy: public key of the candy machine')
+  .option('--candy-freeze', 'candy: freeze the whitelist token accounts after claim. If this is specified, hard error if a multisig is not found')
   .option('--edition-mint <mint>', 'edition: mint of the master edition')
   .option('--base <path>', 'gumdrop authority generated on create')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -386,6 +387,7 @@ programCommand('close')
       options.transferMint,
       options.candyMachine,
       options.editionMint,
+      options.candyMachine && options.candyFreeze,
     );
 
     const closeResult = await sendTransactionWithRetry(
