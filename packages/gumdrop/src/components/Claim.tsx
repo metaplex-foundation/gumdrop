@@ -154,6 +154,7 @@ const buildMintClaim = async (
   ]);
 
   const matches = MerkleTree.verifyClaim(
+    0x00, // this can be frozen too since its just tokens...
     leaf,
     proof,
     Buffer.from(distributorInfo.root),
@@ -227,6 +228,7 @@ const buildCandyClaim = async (
   distributorInfo: any,
   tokenAcc: string,
   candyMachineStr: string,
+  candyFreezeStr: string,
   proof: Array<Buffer>,
   handle: string,
   amount: number,
@@ -245,6 +247,17 @@ const buildCandyClaim = async (
     candyMachineKey = new PublicKey(candyMachineStr);
   } catch (err) {
     throw new Error(`Invalid candy machine key ${err}`);
+  }
+
+  let candyFreezeKey: PublicKey | null;
+  if (candyFreezeStr) {
+    try {
+      candyFreezeKey = new PublicKey(candyFreezeStr);
+    } catch (err) {
+      throw new Error(`Invalid whitelist mint freeze key ${err}`);
+    }
+  } else {
+    candyFreezeKey = null;
   }
 
   const connection = program.provider.connection;
@@ -275,6 +288,7 @@ const buildCandyClaim = async (
   ]);
 
   const matches = MerkleTree.verifyClaim(
+    candyFreezeKey === null ? 0x00 : 0x02,
     leaf,
     proof,
     Buffer.from(distributorInfo.root),
@@ -312,12 +326,26 @@ const buildCandyClaim = async (
         Token.createAssociatedTokenAccountInstruction(
           SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID,
           TOKEN_PROGRAM_ID,
-          candyMachine.data.whitelistMintSettings.mint,
+          whitelistMint,
           walletTokenKey,
           walletKey,
           walletKey,
         ),
       );
+    }
+
+    const remainingAccounts: Array<AccountMeta> = [];
+    if (candyFreezeKey !== null) {
+      remainingAccounts.push({
+        pubkey: candyFreezeKey,
+        isWritable: false,
+        isSigner: false,
+      });
+      remainingAccounts.push({
+        pubkey: whitelistMint,
+        isWritable: false,
+        isSigner: false,
+      });
     }
 
     merkleClaim.push(
@@ -338,6 +366,7 @@ const buildCandyClaim = async (
             systemProgram: SystemProgram.programId,
             tokenProgram: TOKEN_PROGRAM_ID,
           },
+          remainingAccounts,
         },
       ),
     );
@@ -374,6 +403,13 @@ const buildCandyClaim = async (
         isWritable: false,
         isSigner: true,
       });
+      if (candyFreezeKey !== null) {
+        remainingAccounts.push({
+          pubkey: candyFreezeKey,
+          isWritable: false,
+          isSigner: false,
+        });
+      }
     }
   }
 
@@ -521,6 +557,7 @@ const buildEditionClaim = async (
   ]);
 
   const matches = MerkleTree.verifyClaim(
+    0x00,
     leaf,
     proof,
     Buffer.from(distributorInfo.root),
@@ -739,6 +776,9 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
   const [candyMachine, setCandyMachine] = React.useState(
     (params.candy as string) || '',
   );
+  const [candyFreeze, setCandyFreeze] = React.useState(
+    (params.freeze as string) || '',
+  );
   const [masterMint, setMasterMint] = React.useState(
     (params.master as string) || '',
   );
@@ -859,6 +899,7 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
         distributorInfo,
         tokenAcc,
         candyMachine,
+        candyFreeze,
         proof,
         handle,
         amount,
@@ -1212,13 +1253,6 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
       return (
         <React.Fragment>
           <TextField
-            id="token-acc-text-field"
-            label="Whitelist Token Account"
-            value={tokenAcc}
-            onChange={e => setTokenAcc(e.target.value)}
-            disabled={!editable}
-          />
-          <TextField
             id="candy-text-field"
             label="Candy Machine"
             value={candyMachine}
@@ -1360,6 +1394,24 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
               onChange={e => setPin(e.target.value)}
               disabled={!editable}
             />
+          )}
+          {claimMethod === 'candy' && (
+            <>
+            <TextField
+              id="token-acc-text-field"
+              label="Whitelist Token Account"
+              value={tokenAcc}
+              onChange={e => setTokenAcc(e.target.value)}
+              disabled={!editable}
+            />
+            <TextField
+              id="candy-freeze-field"
+              label="Whitelist Freeze Authority"
+              value={candyFreeze}
+              onChange={e => setCandyFreeze(e.target.value)}
+              disabled={!editable}
+            />
+            </>
           )}
           <TextField
             id="proof-text-field"
