@@ -10,7 +10,9 @@ export class MerkleTree {
     this.leafs = leafs.slice();
     this.layers = [];
 
-    let hashes = this.leafs.map(data => MerkleTree.nodeHash(this.hashFlags, data));
+    let hashes = this.leafs.map(data =>
+      MerkleTree.nodeHash(this.hashFlags, data),
+    );
     while (hashes.length > 0) {
       console.log('Hashes', this.layers.length, hashes);
       this.layers.push(hashes.slice());

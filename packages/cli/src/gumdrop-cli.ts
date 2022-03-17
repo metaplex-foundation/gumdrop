@@ -74,7 +74,10 @@ programCommand('create')
     'transfer and candy: delegate tokens from KEYPAIR instead of transferring to the gumdrop',
   )
   .option('--candy-machine <pubkey>', 'candy: public key of the candy machine')
-  .option('--candy-freeze', 'candy: freeze the whitelist token accounts after claim')
+  .option(
+    '--candy-freeze',
+    'candy: freeze the whitelist token accounts after claim',
+  )
   .option('--edition-mint <mint>', 'edition: mint of the master edition')
   .option(
     '--distribution-method <method>',
@@ -334,7 +337,10 @@ programCommand('close')
   )
   .option('--transfer-mint <mint>', 'transfer: public key of mint')
   .option('--candy-machine <pubkey>', 'candy: public key of the candy machine')
-  .option('--candy-freeze', 'candy: freeze the whitelist token accounts after claim. If this is specified, hard error if a multisig is not found')
+  .option(
+    '--candy-freeze',
+    'candy: freeze the whitelist token accounts after claim. If this is specified, hard error if a multisig is not found',
+  )
   .option('--edition-mint <mint>', 'edition: mint of the master edition')
   .option('--base <path>', 'gumdrop authority generated on create')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

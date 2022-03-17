@@ -5,14 +5,18 @@ export class MerkleTree {
     return Buffer.from(keccak_256.digest([hashFlags, ...data]));
   }
 
-
   static internalHash(first: Buffer, second: Buffer | undefined): Buffer {
     if (!second) return first;
     const [fst, snd] = [first, second].sort(Buffer.compare);
     return Buffer.from(keccak_256.digest([0x01, ...fst, ...snd]));
   }
 
-  static verifyClaim(hashFlags: number, leaf: Buffer, proof: Buffer[], root: Buffer): boolean {
+  static verifyClaim(
+    hashFlags: number,
+    leaf: Buffer,
+    proof: Buffer[],
+    root: Buffer,
+  ): boolean {
     let pair = MerkleTree.nodeHash(hashFlags, leaf);
     for (const item of proof) {
       pair = MerkleTree.internalHash(pair, item);

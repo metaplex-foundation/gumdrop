@@ -522,7 +522,10 @@ export const buildGumdrop = async (
   claimInfo: ClaimInfo,
   freezeTokens: boolean,
   extraParams: Array<string> = [],
-): Promise<{ instructions: Array<TransactionInstruction>, signers: Array<Keypair> }> => {
+): Promise<{
+  instructions: Array<TransactionInstruction>;
+  signers: Array<Keypair>;
+}> => {
   const needsPin = commMethod !== 'wallets';
   const leafs: Array<Buffer> = [];
   for (let idx = 0; idx < claimants.length; ++idx) {
@@ -582,7 +585,9 @@ export const buildGumdrop = async (
       SystemProgram.createAccount({
         fromPubkey: walletKey,
         newAccountPubkey: multisigAccount.publicKey,
-        lamports: await connection.getMinimumBalanceForRentExemption(multisigSize),
+        lamports: await connection.getMinimumBalanceForRentExemption(
+          multisigSize,
+        ),
         space: multisigSize,
         programId: TOKEN_PROGRAM_ID,
       }),
@@ -592,14 +597,20 @@ export const buildGumdrop = async (
       new TransactionInstruction({
         programId: TOKEN_PROGRAM_ID,
         keys: [
-          { pubkey: multisigAccount.publicKey, isSigner: false, isWritable: true },
+          {
+            pubkey: multisigAccount.publicKey,
+            isSigner: false,
+            isWritable: true,
+          },
           { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
           //
           // multisig signers
           //
           // candy machine
           {
-            pubkey: (await getCandyMachineCreator(claimInfo.candyMachineKey))[0],
+            pubkey: (
+              await getCandyMachineCreator(claimInfo.candyMachineKey)
+            )[0],
             isSigner: false,
             isWritable: false,
           },
@@ -625,7 +636,7 @@ export const buildGumdrop = async (
         'FreezeAccount',
         walletKey, // currentAuthority
         [],
-      )
+      ),
     );
 
     signers.push(multisigAccount);
@@ -887,12 +898,21 @@ export const closeGumdrop = async (
 
     const candyMachine = await getCandyMachine(connection, candyMachineKey);
     const whitelistMint = candyMachine.data.whitelistMintSettings.mint;
-    const { info: whitelistMintInfo } = await getMintInfo(connection, whitelistMint.toBase58());
+    const { info: whitelistMintInfo } = await getMintInfo(
+      connection,
+      whitelistMint.toBase58(),
+    );
     if (whitelistMintInfo.freezeAuthority) {
       const freezeAuthority = new PublicKey(whitelistMintInfo.freezeAuthority);
       try {
         // base has no SOL so this should be safe...
-        const token = new Token(connection, whitelistMint, TOKEN_PROGRAM_ID, base);
+        const token = new Token(
+          connection,
+          whitelistMint,
+          TOKEN_PROGRAM_ID,
+          base,
+        );
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const multisig = await token.getMultisigInfo(freezeAuthority);
 
         // set back from multisig to us
@@ -904,14 +924,12 @@ export const closeGumdrop = async (
             'FreezeAccount',
             freezeAuthority, // currentAuthority
             [base],
-          )
+          ),
         );
       } catch (err) {
         const failMessage = `Failed to fetch freeze authority multisig: ${err.message}`;
-        if (freezeTokens)
-          throw new Error(failMessage);
-        else
-          console.warn(freezeTokens);
+        if (freezeTokens) throw new Error(failMessage);
+        else console.warn(freezeTokens);
       }
     }
   }

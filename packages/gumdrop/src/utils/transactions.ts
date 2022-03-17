@@ -30,8 +30,7 @@ export const getUnixTs = () => {
 export const envFor = (connection: Connection): string => {
   const endpoint = (connection as any)._rpcEndpoint;
   for (const e of ENDPOINTS) {
-    if (endpoint === e.url)
-      return e.name;
+    if (endpoint === e.url) return e.name;
   }
   return 'mainnet-beta';
 };

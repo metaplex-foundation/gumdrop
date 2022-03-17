@@ -1397,20 +1397,20 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
           )}
           {claimMethod === 'candy' && (
             <>
-            <TextField
-              id="token-acc-text-field"
-              label="Whitelist Token Account"
-              value={tokenAcc}
-              onChange={e => setTokenAcc(e.target.value)}
-              disabled={!editable}
-            />
-            <TextField
-              id="candy-freeze-field"
-              label="Whitelist Freeze Authority"
-              value={candyFreeze}
-              onChange={e => setCandyFreeze(e.target.value)}
-              disabled={!editable}
-            />
+              <TextField
+                id="token-acc-text-field"
+                label="Whitelist Token Account"
+                value={tokenAcc}
+                onChange={e => setTokenAcc(e.target.value)}
+                disabled={!editable}
+              />
+              <TextField
+                id="candy-freeze-field"
+                label="Whitelist Freeze Authority"
+                value={candyFreeze}
+                onChange={e => setCandyFreeze(e.target.value)}
+                disabled={!editable}
+              />
             </>
           )}
           <TextField
