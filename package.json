@@ -2,7 +2,6 @@
   "private": true,
   "workspaces": {
     "packages": [
-      "packages/common",
       "packages/cli",
       "packages/gumdrop"
     ]
@@ -15,8 +14,8 @@
   },
   "scripts": {
     "bootstrap": "lerna link && lerna bootstrap",
-    "build": "lerna run build --scope @oyster/common && lerna run build",
-    "start": "lerna run start --scope @oyster/common --stream --parallel --scope gumdrop",
+    "build": "lerna run build",
+    "start": "lerna run start --scope gumdrop",
     "lint": "prettier -c 'packages/*/{src,test}/**/*.{ts,tsx}' && npm run lint:eslint",
     "lint:eslint": "eslint 'packages/*/{src,test}/**/*.{ts,tsx}'",
     "lint:fix": "prettier --write 'packages/*/{src,test}/**/*.{ts,tsx}' && eslint --fix 'packages/*/{src,test}/**/*.{ts,tsx}'",
