@@ -52,6 +52,7 @@ export const getATA = (
     TOKEN_PROGRAM_ID,
     mintKey,
     walletKey,
+    true, // allowOwnerOffCurve aka PDA
   );
 };
 

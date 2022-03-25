@@ -1190,6 +1190,7 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
                 setLoading(false);
                 onClick();
               } catch (err) {
+                console.error(err);
                 notify({
                   message: 'Claim failed',
                   description: `${err}`,
@@ -1407,6 +1408,7 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
                 setLoading(false);
                 onClick();
               } catch (err) {
+                console.error(err);
                 notify({
                   message: 'Claim failed',
                   description: `${err}`,
