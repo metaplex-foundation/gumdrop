@@ -71,6 +71,10 @@ module.exports = {
         process: 'process/browser',
     }),
     new HtmlWebpackPlugin({ template: "index.html.ejs" }),
+    new webpack.DefinePlugin({
+      'process.env.LAMBDA_GATEWAY_API_ID': JSON.stringify(
+        process.env.LAMBDA_GATEWAY_API_ID || 'PLACEHOLDER_API_ID')
+    }),
   ],
   // externals: {
   //   react: "React",

@@ -801,8 +801,7 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
     wrap();
   }, [program, distributor, indexStr, claimMethod]);
 
-  const lambdaAPIEndpoint =
-    'https://{PLACEHOLDER-API-ID}.execute-api.us-east-2.amazonaws.com/send-OTP';
+  const lambdaAPIEndpoint = `https://${process.env.LAMBDA_GATEWAY_API_ID}.execute-api.us-east-2.amazonaws.com/send-OTP`;
 
   const skipAWSWorkflow = false;
 
