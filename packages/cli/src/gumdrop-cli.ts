@@ -562,6 +562,30 @@ programCommand('fetch_program')
     }
   });
 
+programCommand('check_wallets')
+  .option('--distribution-list <path>', 'List of users to build gumdrop from.')
+  .action(async options => {
+    log.info(`Parsed options:`, options);
+    if (!options.distributionList) {
+      throw new Error('No distribution list found');
+    }
+    const l = JSON.parse(fs.readFileSync(options.distributionList).toString());
+    let failed = 0;
+    for (const w of l) {
+      try {
+        new PublicKey(w.handle);
+      } catch {
+        failed += 1;
+        console.warn(`Bad pubkey ${w.handle}`);
+      }
+    }
+    if (failed !== 0) {
+      throw new Error(`${failed}/${l.length} bad pubkeys found`);
+    } else {
+      console.log(`${l.length} pubkeys seem OK`);
+    }
+  });
+
 function programCommand(name: string) {
   return program
     .command(name)
