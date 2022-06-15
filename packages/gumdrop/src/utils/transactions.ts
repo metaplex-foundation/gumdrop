@@ -282,7 +282,7 @@ export async function awaitTransactionSignatureConfirmation(
   });
 
   //@ts-ignore
-  if (connection._signatureSubscriptions[subId])
+  if (connection._subscriptionDisposeFunctionsByClientSubscriptionId[subId])
     connection.removeSignatureListener(subId);
   done = true;
   log.debug('Returning status', status);
