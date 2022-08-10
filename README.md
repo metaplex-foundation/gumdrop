@@ -1,7 +1,7 @@
 # Gumdrop 
 
 See the [Metaplex Docs](https://docs.metaplex.com/airdrops/create-gumdrop) and the
-[About page](https://gumdrop.metaplex.com/) for more information.
+[Example Deployment](https://gumdrop.metaplex.com/) for more information.
 
 ## Setup
 
@@ -18,4 +18,4 @@ running environment.
 
 ## ⚠️ Warning
 
-Any content produced by Solana, or developer resources that Solana provides, are for educational and inspiration purposes only. Solana does not encourage, induce or sanction the deployment of any such applications in violation of applicable laws or regulations.
+Any content produced by Metaplex, or developer resources that Metaplex provides, are for educational and inspiration purposes only. Metaplex does not encourage, induce or sanction the deployment of any such applications in violation of applicable laws or regulations.
