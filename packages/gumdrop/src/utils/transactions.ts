@@ -28,7 +28,7 @@ export const getUnixTs = () => {
 
 export const envFor = (connection: Connection): string => {
   const endpoint = (connection as any)._rpcEndpoint;
-  const regex = /https:\/\/metaplex.([^.]*).rpcpool.com/;
+  const regex = /https:\/\/api.([^.]*).solana.com/;
   const match = endpoint.match(regex);
   if (match && match[1]) {
     return match[1];
