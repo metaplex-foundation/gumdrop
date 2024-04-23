@@ -33,7 +33,7 @@ export const envFor = (connection: Connection): string => {
   if (match && match[1]) {
     return match[1];
   }
-  return 'devnet';
+  return 'mainnet-beta';
 };
 
 export const explorerLinkFor = (
@@ -102,12 +102,10 @@ export async function sendSignedTransaction({
   const rawTransaction = signedTransaction.serialize();
   const startTime = getUnixTs();
   let slot = 0;
-  console.log('TRYYYY 1111');
-
   const txid: TransactionSignature = await connection.sendRawTransaction(
     rawTransaction,
     {
-      skipPreflight: false,
+      skipPreflight: true,
     },
   );
 
@@ -116,11 +114,10 @@ export async function sendSignedTransaction({
   let done = false;
   (async () => {
     while (!done && getUnixTs() - startTime < timeout) {
-      console.log('TRYYYY');
       connection.sendRawTransaction(rawTransaction, {
-        skipPreflight: false,
+        skipPreflight: true,
       });
-      await sleep(5000);
+      await sleep(500);
     }
   })();
   try {

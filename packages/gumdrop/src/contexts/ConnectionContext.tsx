@@ -41,12 +41,12 @@ export const ENDPOINTS: Array<Endpoint> = [
   },
   {
     name: 'devnet',
-    url: 'https://devnet.helius-rpc.com/?api-key=80fe76ae-0027-422f-b72c-4d160184253f/',
+    url: 'https://api.devnet.solana.com/',
     chainId: ChainId.Devnet,
   },
 ];
 
-const DEFAULT_IDX = 1; // CHANGE FOR MAINNET
+const DEFAULT_IDX = 1;
 const DEFAULT_ENDPOINT = ENDPOINTS[DEFAULT_IDX];
 
 interface ConnectionConfig {
@@ -86,11 +86,7 @@ export function ConnectionProvider({ children }: { children: any }) {
 
   const endpoint = maybeEndpoint || DEFAULT_ENDPOINT;
 
-  const { current: connection } = React.useRef(
-    new Connection(
-      'https://devnet.helius-rpc.com/?api-key=80fe76ae-0027-422f-b72c-4d160184253f',
-    ),
-  ); //endpoint.url));
+  const { current: connection } = React.useRef(new Connection(endpoint.url));
 
   const [tokens, setTokens] = useState<Map<string, TokenInfo>>(new Map());
 

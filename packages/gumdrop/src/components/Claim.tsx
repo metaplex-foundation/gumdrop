@@ -20,14 +20,10 @@ import {
 
 import { useAnchorWallet } from '@solana/wallet-adapter-react';
 import {
-  AccountMeta,
   Connection as RPCConnection,
   Keypair,
   PublicKey,
   SystemProgram,
-  SYSVAR_CLOCK_PUBKEY,
-  SYSVAR_INSTRUCTIONS_PUBKEY,
-  SYSVAR_RECENT_BLOCKHASHES_PUBKEY,
   SYSVAR_RENT_PUBKEY,
   Transaction,
   TransactionInstruction,
@@ -54,7 +50,6 @@ import {
   TOKEN_METADATA_PROGRAM_ID,
 } from '../utils/ids';
 import {
-  getCandyMachine,
   getATA,
   getEdition,
   getEditionMarkerPda,
@@ -75,8 +70,6 @@ export const chunk = (arr: Buffer, len: number): Array<Buffer> => {
   return chunks;
 };
 
-const test = Keypair.generate().secretKey;
-console.log('test', test);
 const walletKeyOrPda = async (
   walletKey: PublicKey,
   handle: string,
@@ -219,218 +212,6 @@ const buildMintClaim = async (
   );
 
   return [{ setup, claim: [claimAirdrop] }, pdaSeeds, []];
-};
-
-const buildCandyClaim = async (
-  program: anchor.Program,
-  candyProgram: anchor.Program,
-  walletKey: PublicKey,
-  distributorKey: PublicKey,
-  distributorInfo: any,
-  tokenAcc: string,
-  candyMachineStr: string,
-  proof: Array<Buffer>,
-  handle: string,
-  amount: number,
-  index: number,
-  pin: BN | null,
-): Promise<[ClaimInstructions, Array<Buffer>, Array<Keypair>]> => {
-  let tokenAccKey: PublicKey;
-  try {
-    tokenAccKey = new PublicKey(tokenAcc);
-  } catch (err) {
-    throw new Error(`Invalid tokenAcc key ${err}`);
-  }
-
-  let candyMachineKey: PublicKey;
-  try {
-    candyMachineKey = new PublicKey(candyMachineStr);
-  } catch (err) {
-    throw new Error(`Invalid candy machine key ${err}`);
-  }
-
-  const connection = program.provider.connection;
-  const candyMachine = await getCandyMachine(connection, candyMachineKey);
-  console.log('Candy Machine', candyMachine);
-
-  if (!candyMachine.data.whitelistMintSettings) {
-    // soft error?
-    throw new Error(
-      `Candy machine doesn't seem to have a whitelist mint. You can mint normally!`,
-    );
-  }
-  const whitelistMint = candyMachine.data.whitelistMintSettings.mint;
-
-  const [secret, pdaSeeds] = await walletKeyOrPda(
-    walletKey,
-    handle,
-    pin,
-    whitelistMint,
-  );
-
-  // TODO: since it's in the PDA do we need it to be in the leaf?
-  const leaf = Buffer.from([
-    ...new BN(index).toArray('le', 8),
-    ...secret.toBuffer(),
-    ...whitelistMint.toBuffer(),
-    ...new BN(amount).toArray('le', 8),
-  ]);
-
-  const matches = MerkleTree.verifyClaim(
-    leaf,
-    proof,
-    Buffer.from(distributorInfo.root),
-  );
-
-  if (!matches) {
-    throw new Error('Gumdrop merkle proof does not match');
-  }
-
-  const [claimStatus, cbump] = await PublicKey.findProgramAddress(
-    [
-      Buffer.from('ClaimStatus'),
-      Buffer.from(new BN(index).toArray('le', 8)),
-      distributorKey.toBuffer(),
-    ],
-    GUMDROP_DISTRIBUTOR_ID,
-  );
-
-  // candy machine mints fit in a single transaction
-  const merkleClaim: Array<TransactionInstruction> = [];
-
-  if ((await connection.getAccountInfo(claimStatus)) === null) {
-    // atm the contract has a special case for when the temporal key is defaulted
-    // (aka always passes temporal check)
-    // TODO: more flexible
-    const temporalSigner =
-      distributorInfo.temporal.equals(PublicKey.default) ||
-      secret.equals(walletKey)
-        ? walletKey
-        : distributorInfo.temporal;
-
-    const walletTokenKey = await getATA(walletKey, whitelistMint);
-    if ((await connection.getAccountInfo(walletTokenKey)) === null) {
-      merkleClaim.push(
-        Token.createAssociatedTokenAccountInstruction(
-          SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID,
-          TOKEN_PROGRAM_ID,
-          candyMachine.data.whitelistMintSettings.mint,
-          walletTokenKey,
-          walletKey,
-          walletKey,
-        ),
-      );
-    }
-
-    merkleClaim.push(
-      await program.instruction.claim(
-        cbump,
-        new BN(index),
-        new BN(amount),
-        secret,
-        proof,
-        {
-          accounts: {
-            distributor: distributorKey,
-            claimStatus,
-            from: tokenAccKey,
-            to: walletTokenKey,
-            temporal: temporalSigner,
-            payer: walletKey,
-            systemProgram: SystemProgram.programId,
-            tokenProgram: TOKEN_PROGRAM_ID,
-          },
-        },
-      ),
-    );
-  }
-
-  const candyMachineMint = Keypair.generate();
-  const candyMachineMetadata = await getMetadata(candyMachineMint.publicKey);
-  const candyMachineMaster = await getEdition(candyMachineMint.publicKey);
-
-  const [candyMachineCreatorKey, candyMachineCreatorBump] =
-    await PublicKey.findProgramAddress(
-      [Buffer.from('candy_machine'), candyMachineKey.toBuffer()],
-      CANDY_MACHINE_ID,
-    );
-
-  const remainingAccounts: Array<AccountMeta> = [];
-
-  if (candyMachine.data.whitelistMintSettings) {
-    const whitelistATA = await getATA(walletKey, whitelistMint);
-    remainingAccounts.push({
-      pubkey: whitelistATA,
-      isWritable: true,
-      isSigner: false,
-    });
-
-    if (candyMachine.data.whitelistMintSettings.mode.burnEveryTime) {
-      remainingAccounts.push({
-        pubkey: whitelistMint,
-        isWritable: true,
-        isSigner: false,
-      });
-      remainingAccounts.push({
-        pubkey: walletKey,
-        isWritable: false,
-        isSigner: true,
-      });
-    }
-  }
-
-  if (candyMachine.tokenMint) {
-    const tokenMintATA = await getATA(walletKey, candyMachine.tokenMint);
-
-    remainingAccounts.push({
-      pubkey: tokenMintATA,
-      isWritable: true,
-      isSigner: false,
-    });
-    remainingAccounts.push({
-      pubkey: walletKey,
-      isWritable: false,
-      isSigner: true,
-    });
-  }
-
-  const candyMachineClaim: Array<TransactionInstruction> = [];
-  await createMintAndAccount(
-    connection,
-    walletKey,
-    candyMachineMint.publicKey,
-    candyMachineClaim,
-  );
-  candyMachineClaim.push(
-    await candyProgram.instruction.mintNft(candyMachineCreatorBump, {
-      accounts: {
-        candyMachine: candyMachineKey,
-        candyMachineCreator: candyMachineCreatorKey,
-        payer: walletKey,
-        wallet: candyMachine.wallet,
-        metadata: candyMachineMetadata,
-        mint: candyMachineMint.publicKey,
-        mintAuthority: walletKey,
-        updateAuthority: walletKey,
-        masterEdition: candyMachineMaster,
-
-        tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        systemProgram: SystemProgram.programId,
-        rent: SYSVAR_RENT_PUBKEY,
-        clock: SYSVAR_CLOCK_PUBKEY,
-        recentBlockhashes: SYSVAR_RECENT_BLOCKHASHES_PUBKEY,
-        instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
-      },
-      remainingAccounts,
-    }),
-  );
-
-  return [
-    { setup: merkleClaim, claim: candyMachineClaim },
-    pdaSeeds,
-    [candyMachineMint],
-  ];
 };
 
 const createMintAndAccount = async (
@@ -803,8 +584,8 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
     wrap();
   }, [program, distributor, indexStr, claimMethod]);
 
-  const lambdaAPIEndpoint = `https://ul51g2rg42.execute-api.us-east-1.amazonaws.com/send-OTP`;
-  console.log({ lambdaAPIEndpoint });
+  const lambdaAPIEndpoint = `https://${process.env.LAMBDA_GATEWAY_API_ID}.execute-api.us-east-2.amazonaws.com/send-OTP`;
+
   const skipAWSWorkflow = false;
 
   const sendOTP = async (e: React.SyntheticEvent) => {
@@ -850,23 +631,7 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
           });
 
     let instructions, pdaSeeds, extraSigners;
-    if (claimMethod === 'candy') {
-      console.log('Building candy claim');
-      [instructions, pdaSeeds, extraSigners] = await buildCandyClaim(
-        program.gumdrop,
-        program.candyMachine,
-        wallet.publicKey,
-        distributorKey,
-        distributorInfo,
-        tokenAcc,
-        candyMachine,
-        proof,
-        handle,
-        amount,
-        index,
-        pin,
-      );
-    } else if (claimMethod === 'transfer') {
+    if (claimMethod === 'transfer') {
       [instructions, pdaSeeds, extraSigners] = await buildMintClaim(
         program.gumdrop,
         wallet.publicKey,
@@ -988,7 +753,7 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
       };
 
       const response = await fetch(lambdaAPIEndpoint, params);
-      console.log({ response });
+      console.log(response);
 
       if (response.status !== 200) {
         throw new Error(`Failed to send AWS OTP`);
@@ -1179,7 +944,7 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
 
       <Box sx={{ position: 'relative' }}>
         <Button
-          disabled={false}
+          disabled={!wallet || !program || !OTPStr || loading}
           variant="contained"
           color="secondary"
           style={{ width: '100%' }}

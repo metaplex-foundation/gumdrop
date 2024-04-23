@@ -2,7 +2,7 @@
 const { resolve } = require("path");
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-console.log("HEEEY", process.env.REACT_APP_WEB_HOME)
+
 module.exports = {
   resolve: {
     extensions: [".js", ".jsx", ".ts", ".tsx"],
@@ -73,7 +73,7 @@ module.exports = {
     new HtmlWebpackPlugin({ template: "index.html.ejs" }),
     new webpack.DefinePlugin({
       'process.env.LAMBDA_GATEWAY_API_ID': JSON.stringify(
-        process.env.LAMBDA_GATEWAY_API_ID || 'ul51g2rg42')
+        process.env.LAMBDA_GATEWAY_API_ID || 'PLACEHOLDER_API_ID')
     }),
   ],
   // externals: {
