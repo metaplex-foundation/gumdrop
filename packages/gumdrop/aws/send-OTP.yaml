@@ -11,7 +11,7 @@ Resources:
       Description: ''
       MemorySize: 128
       Timeout: 8
-      Role: 'arn:aws:iam::{PLACEHOLDER-ACCOUNT-ID}:role/service-role/send-OTP-role-3wa21hc0'
+      Role: 'arn:aws:iam::648214235811:role/service-role/send-OTP-role-3wa21hc0'
       Events:
         Api1:
           Type: Api
@@ -24,4 +24,4 @@ Resources:
           MA_OTP_TABLE_NAME: otp-table
           MA_OTP_X: '60000'
       Layers:
-        - 'arn:aws:lambda:us-east-2:{PLACEHOLDER-ACCOUNT-ID}:layer:sol-runtime:3'
+        - 'arn:aws:lambda:us-east-1:648214235811:layer:sol-runtime:3'

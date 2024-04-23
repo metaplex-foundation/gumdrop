@@ -204,9 +204,10 @@ async function awaitTransactionSignatureConfirmation(
       await sleep(2000);
     }
   });
-
   //@ts-ignore
-  if (connection._signatureSubscriptions[subId])
+  console.log(connection._signatureSubscriptions);
+  //@ts-ignore
+  if (connection._signatureSubscriptions?.[subId])
     connection.removeSignatureListener(subId);
   done = true;
   log.debug('Returning status', status);

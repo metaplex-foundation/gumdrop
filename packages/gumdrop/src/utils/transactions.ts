@@ -99,7 +99,9 @@ export async function sendSignedTransaction({
   successMessage?: string;
   timeout?: number;
 }): Promise<{ txid: string; slot: number }> {
+  console.log('TRY');
   const rawTransaction = signedTransaction.serialize();
+  console.log({ rawTransaction });
   const startTime = getUnixTs();
   let slot = 0;
   const txid: TransactionSignature = await connection.sendRawTransaction(

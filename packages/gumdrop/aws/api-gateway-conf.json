@@ -5,7 +5,7 @@
     "version" : "2021-11-02 02:20:54UTC"
   },
   "servers" : [ {
-    "url" : "https://{PLACEHOLDER-API-ID}.execute-api.us-east-2.amazonaws.com/{basePath}",
+    "url" : "https://ul51g2rg42.execute-api.us-east-1.amazonaws.com/{basePath}",
     "variables" : {
       "basePath" : {
         "default" : ""
@@ -24,7 +24,7 @@
           "payloadFormatVersion" : "2.0",
           "type" : "aws_proxy",
           "httpMethod" : "POST",
-          "uri" : "arn:aws:apigateway:us-east-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-2:{PLACEHOLDER-ACCOUNT-ID}:function:send-OTP/invocations",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:648214235811:function:send-OTP/invocations",
           "connectionType" : "INTERNET"
         }
       }

@@ -477,7 +477,7 @@ programCommand('create_contact_list')
     }
 
     const client = new SESv2Client({
-      region: 'us-east-2',
+      region: 'us-east-1',
       credentials: {
         accessKeyId: options.awsAccessKeyId,
         secretAccessKey: options.awsSecretAccessKey,
@@ -506,7 +506,7 @@ programCommand('get_contact')
     log.info(`Parsed options:`, options);
 
     const client = new SESv2Client({
-      region: 'us-east-2',
+      region: 'us-east-1',
       credentials: {
         accessKeyId: options.awsAccessKeyId,
         secretAccessKey: options.awsSecretAccessKey,
