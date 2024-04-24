@@ -519,9 +519,6 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
   const [tokenAcc, setTokenAcc] = React.useState(
     (params.tokenAcc as string) || '',
   );
-  const [candyMachine, setCandyMachine] = React.useState(
-    (params.candy as string) || '',
-  );
   const [masterMint, setMasterMint] = React.useState(
     (params.master as string) || '',
   );
@@ -543,8 +540,6 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
     distributor.length > 0 &&
     (claimMethod === 'transfer'
       ? tokenAcc.length > 0
-      : claimMethod === 'candy'
-      ? tokenAcc.length > 0 && candyMachine.length > 0
       : claimMethod === 'edition'
       ? masterMint.length > 0 && editionStr.length > 0
       : false) &&
@@ -975,26 +970,7 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
   );
 
   const claimData = claimMethod => {
-    if (claimMethod === 'candy') {
-      return (
-        <React.Fragment>
-          <TextField
-            id="token-acc-text-field"
-            label="Whitelist Token Account"
-            value={tokenAcc}
-            onChange={e => setTokenAcc(e.target.value)}
-            disabled={!editable}
-          />
-          <TextField
-            id="candy-text-field"
-            label="Candy Machine"
-            value={candyMachine}
-            onChange={e => setCandyMachine(e.target.value)}
-            disabled={!editable}
-          />
-        </React.Fragment>
-      );
-    } else if (claimMethod === 'transfer') {
+    if (claimMethod === 'transfer') {
       return (
         <React.Fragment>
           <TextField
