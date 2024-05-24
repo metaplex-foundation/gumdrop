@@ -1,10 +1,36 @@
 [
   {
+    "handle": "J1TgbxPVkMUJPTWfmZFjWcgHLb8t6kbHwUzdaYfebLzV",
+    "amount": 100000000000
+  },
+  {
     "handle": "DoptvctyLdAD8XH8uENoddPMBevyiXUQfE7ZWHEV39Zk",
-    "amount": 1000000000
+    "amount": 100000000000
   },
   {
     "handle": "B1DkvnNCp6zAddmsSicH2j4wxegyFhQ2gcLimD8ztGZq",
-    "amount": 1000000000
+    "amount": 100000000000
+  },
+  {
+    "handle": "CjCpSkSKqmWFSSeop4ZuhHm4DWruLx7jD6tL17n1fqhK",
+    "amount": 100000000000
+  },
+  {
+    "handle": "8kRepE38PwLqQ5F97rQzgYqhK8FEpUoUtjcpeDX1XgTY",
+    "amount": 100000000000
+  },
+  {
+    "handle": "D83cBtKgkitH81Ephr5hNgwCaELgnkUtcAxTJnr4GEy9",
+    "amount": 100000000000
+  }
+  },
+  {
+    "handle": "FtmB2meboz8EFGf8WpA2DKYA5dr5JMWNs8BKLtcXp3xm",
+    "amount": 100000000000
+  }
+  },
+  {
+    "handle": "Fde1Hz5rGGcm566vubzV6MiqywkFrkpK6FNBXYkekGpP",
+    "amount": 100000000000
   }
 ]

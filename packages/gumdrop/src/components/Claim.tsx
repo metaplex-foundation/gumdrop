@@ -147,6 +147,7 @@ const buildMintClaim = async (
     ...mint.toBuffer(),
     ...new BN(amount).toArray('le', 8),
   ]);
+  console.log({ leaf, proof, dist: Buffer.from(distributorInfo.root) });
 
   const matches = MerkleTree.verifyClaim(
     leaf,
@@ -168,6 +169,7 @@ const buildMintClaim = async (
   );
 
   const setup: Array<TransactionInstruction> = [];
+  console.log("TRY", { walletKey, mint });
 
   const walletTokenKey = await getATA(walletKey, mint);
   if (
@@ -184,7 +186,9 @@ const buildMintClaim = async (
       ),
     );
   }
+  console.log({ setup });
 
+console.log("PublicKey.default", PublicKey.default)
   const temporalSigner =
     distributorInfo.temporal.equals(PublicKey.default) ||
     secret.equals(walletKey)
@@ -410,30 +414,11 @@ const fetchDistributor = async (
 const fetchNeedsTemporalSigner = async (
   program: anchor.Program,
   distributorStr: string,
-  indexStr: string,
-  claimMethod: string,
 ) => {
-  const [key, info] = await fetchDistributor(program, distributorStr);
+  const [, info] = await fetchDistributor(program, distributorStr);
   if (!info.temporal.equals(GUMDROP_TEMPORAL_SIGNER)) {
     // default pubkey or program itself (distribution through wallets)
     return false;
-  } else if (claimMethod === 'candy') {
-    const [claimCount] = await PublicKey.findProgramAddress(
-      [
-        Buffer.from('ClaimCount'),
-        Buffer.from(new BN(Number(indexStr)).toArray('le', 8)),
-        key.toBuffer(),
-      ],
-      GUMDROP_DISTRIBUTOR_ID,
-    );
-    // if someone (maybe us) has already claimed this, the contract will
-    // not check the existing temporal signer anymore since presumably
-    // they have already verified the OTP. So we need to fetch the temporal
-    // signer if it is null
-    const claimCountAccount = await program.provider.connection.getAccountInfo(
-      claimCount,
-    );
-    return claimCountAccount === null;
   } else {
     // default to need one
     return true;
@@ -449,7 +434,6 @@ type ClaimTransactions = {
 
 type Programs = {
   gumdrop: anchor.Program;
-  candyMachine: anchor.Program;
 };
 
 export const Claim = (props: RouteComponentProps<ClaimProps>) => {
@@ -472,7 +456,7 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
           anchor.Program.fetchIdl(GUMDROP_DISTRIBUTOR_ID, provider),
           anchor.Program.fetchIdl(CANDY_MACHINE_ID, provider),
         ]);
-
+        console.log({ gumdropIdl });
         if (!gumdropIdl) throw new Error('Failed to fetch gumdrop IDL');
         if (!candyIdl) throw new Error('Failed to fetch candy machine IDL');
 
@@ -480,11 +464,6 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
           gumdrop: new anchor.Program(
             gumdropIdl,
             GUMDROP_DISTRIBUTOR_ID,
-            provider,
-          ),
-          candyMachine: new anchor.Program(
-            candyIdl,
-            CANDY_MACHINE_ID,
             provider,
           ),
         });
@@ -508,13 +487,7 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
     (params.distributor as string) || '',
   );
   const [claimMethod, setClaimMethod] = React.useState(
-    params.candy
-      ? 'candy'
-      : params.tokenAcc
-      ? 'transfer'
-      : params.master
-      ? 'edition'
-      : '',
+    params.tokenAcc ? 'transfer' : params.master ? 'edition' : '',
   );
   const [tokenAcc, setTokenAcc] = React.useState(
     (params.tokenAcc as string) || '',
@@ -565,12 +538,7 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
       try {
         if (!program) return;
         setNeedsTemporalSigner(
-          await fetchNeedsTemporalSigner(
-            program.gumdrop,
-            distributor,
-            indexStr,
-            claimMethod,
-          ),
+          await fetchNeedsTemporalSigner(program.gumdrop, distributor),
         );
       } catch {
         // TODO: log?
@@ -695,6 +663,7 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
         feePayer: wallet.publicKey,
         recentBlockhash,
       });
+      console.log("SETUP", instructions.setup)
 
       const setupInstrs = instructions.setup;
       const setupSigners = signersOf(setupInstrs);
@@ -824,7 +793,10 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
         )
       ? setupTx
       : /*otherwise*/ null;
+
+    console.log({txnNeedsTemporalSigner})
     if (txnNeedsTemporalSigner && !skipAWSWorkflow) {
+      console.log("INSIDE")
       // TODO: distinguish between OTP failure and transaction-error. We can try
       // again on the former but not the latter
       const OTP = Number(OTPStr);
@@ -869,7 +841,7 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
 
       txnNeedsTemporalSigner.addSignature(GUMDROP_TEMPORAL_SIGNER, sig);
     }
-
+    console.log(transaction)
     let fullySigned;
     try {
       fullySigned = await wallet.signAllTransactions(
@@ -901,12 +873,7 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
     setTransaction(null);
     try {
       setNeedsTemporalSigner(
-        await fetchNeedsTemporalSigner(
-          program.gumdrop,
-          distributor,
-          indexStr,
-          claimMethod,
-        ),
+        await fetchNeedsTemporalSigner(program.gumdrop, distributor),
       );
     } catch {
       // TODO: log?
@@ -1138,8 +1105,6 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
                 const needsTemporalSigner = await fetchNeedsTemporalSigner(
                   program.gumdrop,
                   distributor,
-                  indexStr,
-                  claimMethod,
                 );
                 const transaction = await sendOTP(e);
                 if (!needsTemporalSigner) {
