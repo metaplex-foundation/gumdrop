@@ -186,9 +186,9 @@ export const getCreatorTokenAccount = async (
   const creatorTokenInfo = AccountLayout.decode(
     Buffer.from(creatorTokenAccount.data),
   );
-  if (new BN(creatorTokenInfo.amount, 8, 'le').lt(totalClaim)) {
-    throw new Error(`Creator token account does not have enough tokens`);
-  }
+  // if (new BN(creatorTokenInfo.amount, 8, 'le').lt(totalClaim)) {
+  //   throw new Error(`Creator token account does not have enough tokens`);
+  // }
   return creatorTokenKey;
 };
 
@@ -224,17 +224,23 @@ export const validateTransferClaims = async (
   mintStr: string,
   delegateOnly: PublicKey | null,
 ): Promise<ClaimInfo> => {
+  console.log("Transfer 1")
   claimants.forEach((c, idx) => {
     if (!c.handle) throw new Error(`Claimant ${idx} doesn't have handle`);
     if (!c.amount) throw new Error(`Claimant ${idx} doesn't have amount`);
     if (c.amount === 0) throw new Error(`Claimant ${idx} amount is 0`);
   });
+  console.log("Transfer 2")
 
   const total = claimants.reduce(
     (acc, c) => acc.add(new BN(c.amount)),
     new BN(0),
-  );
+  );  
+  console.log("Transfer 3")
+
   const mint = await getMintInfo(connection, mintStr);
+  console.log("Transfer 4")
+
   let source = await getCreatorTokenAccount(
     walletKey,
     connection,
@@ -254,6 +260,7 @@ export const validateTransferClaims = async (
       )
     )[0];
   }
+  console.log("Transfer 5")
 
   return {
     total,

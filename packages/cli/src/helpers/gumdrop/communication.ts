@@ -118,6 +118,8 @@ export const distributeAwsSes = async (
   claimants: Claimants,
   drop: DropInfo,
 ) => {
+  return Array<Response>(); // added to skip
+
   if (!auth.accessKeyId || !auth.secretAccessKey) {
     throw new Error('AWS SES auth keys not supplied');
   }

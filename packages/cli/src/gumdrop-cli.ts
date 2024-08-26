@@ -104,7 +104,7 @@ programCommand('create')
     const wallet = loadWalletKey(options.keypair);
     const connection = new anchor.web3.Connection(
       //@ts-ignore
-      options.rpcUrl || anchor.web3.clusterApiUrl(options.env),
+      "https://devnet.helius-rpc.com/?api-key=80fe76ae-0027-422f-b72c-4d160184253f" || options.rpcUrl || anchor.web3.clusterApiUrl(options.env),
     );
 
     const getTemporalSigner = auth => {
@@ -146,6 +146,7 @@ programCommand('create')
     } catch (err) {
       throw new Error(`Could not read distribution list ${err}`);
     }
+    console.log(`1`);
 
     const claimants = parseClaimants(
       claimantsStr,
@@ -155,6 +156,7 @@ programCommand('create')
     if (claimants.length === 0) {
       throw new Error(`No claimants provided`);
     }
+    console.log(`2`);
 
     const dropInfo = dropInfoFor(
       options.env,
@@ -163,6 +165,7 @@ programCommand('create')
       options.candyMachine,
       options.editionMint,
     );
+    console.log(`3`);
 
     const distribute = (claimants: Claimants) => {
       switch (options.distributionMethod) {
@@ -201,7 +204,10 @@ programCommand('create')
           );
       }
     };
+    console.log(`4`);
+
     await distribute([]); // check that auth is correct...
+    console.log(`5`);
 
     if (options.resendOnly) {
       if (claimants.some(c => typeof c.url !== 'string')) {
@@ -220,6 +226,7 @@ programCommand('create')
     }
 
     const base = Keypair.generate();
+    console.log(`6`, options.claimIntegration);
 
     let claimInfo;
     switch (options.claimIntegration) {
@@ -257,6 +264,7 @@ programCommand('create')
           "Claim integration must either be 'transfer', 'candy', or 'edition'.",
         );
     }
+    console.log(`7`);
 
     claimants.forEach(c => {
       c.pin = new BN(randomBytes());
@@ -267,6 +275,7 @@ programCommand('create')
           ? claimInfo.mint.key
           : /* === edition */ claimInfo.masterMint.key;
     });
+    console.log(`8`);
 
     const instructions = await buildGumdrop(
       connection,
@@ -279,6 +288,7 @@ programCommand('create')
       claimants,
       claimInfo,
     );
+    console.log(`9`);
 
     const logDir = path.join(LOG_PATH, options.env, base.publicKey.toBase58());
     fs.mkdirSync(logDir, { recursive: true });

@@ -41,7 +41,7 @@ export const ENDPOINTS: Array<Endpoint> = [
   },
   {
     name: 'devnet',
-    url: 'https://api.devnet.solana.com/',
+    url: 'https://devnet.helius-rpc.com/?api-key=80fe76ae-0027-422f-b72c-4d160184253f',
     chainId: ChainId.Devnet,
   },
 ];
@@ -198,6 +198,7 @@ export const getErrorForTransaction = async (
   connection: Connection,
   txid: string,
 ) => {
+  console.log("GET ERROR")
   // wait for all confirmation before geting transaction
   await connection.confirmTransaction(txid, 'max');
 
