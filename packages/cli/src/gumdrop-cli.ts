@@ -104,7 +104,7 @@ programCommand('create')
     const wallet = loadWalletKey(options.keypair);
     const connection = new anchor.web3.Connection(
       //@ts-ignore
-      "https://devnet.helius-rpc.com/?api-key=80fe76ae-0027-422f-b72c-4d160184253f" || options.rpcUrl || anchor.web3.clusterApiUrl(options.env),
+      'https://devnet.helius-rpc.com/?api-key=80fe76ae-0027-422f-b72c-4d160184253f', // || options.rpcUrl || anchor.web3.clusterApiUrl(options.env),
     );
 
     const getTemporalSigner = auth => {
@@ -649,7 +649,7 @@ async function sendTransactionWithRetry(
   const transaction = new Transaction();
   instructions.forEach(instruction => transaction.add(instruction));
   transaction.recentBlockhash = (
-    await connection.getRecentBlockhash(commitment)
+    await connection.getLatestBlockhash(commitment)
   ).blockhash;
 
   transaction.setSigners(
