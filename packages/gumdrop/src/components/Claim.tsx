@@ -150,7 +150,9 @@ const buildMintClaim = async (
     ...new BN(index).toArray('le', 8),
     ...secret.toBuffer(),
     ...mint.toBuffer(),
-    ...new BN(amount).toArray('le', 8),
+    ...new BN(
+      amount.toLocaleString('fullwide', { useGrouping: false }),
+    ).toArray('le', 8),
   ]);
 
   const matches = MerkleTree.verifyClaim(
@@ -199,7 +201,7 @@ const buildMintClaim = async (
   const claimAirdrop = await program.instruction.claim(
     cbump,
     new BN(index),
-    new BN(amount),
+    new BN(amount.toLocaleString('fullwide', { useGrouping: false })),
     secret,
     proof,
     {
@@ -271,7 +273,9 @@ const buildCandyClaim = async (
     ...new BN(index).toArray('le', 8),
     ...secret.toBuffer(),
     ...whitelistMint.toBuffer(),
-    ...new BN(amount).toArray('le', 8),
+    ...new BN(
+      amount.toLocaleString('fullwide', { useGrouping: false }),
+    ).toArray('le', 8),
   ]);
 
   const matches = MerkleTree.verifyClaim(
@@ -324,7 +328,7 @@ const buildCandyClaim = async (
       await program.instruction.claim(
         cbump,
         new BN(index),
-        new BN(amount),
+        new BN(amount.toLocaleString('fullwide', { useGrouping: false })),
         secret,
         proof,
         {
@@ -516,7 +520,9 @@ const buildEditionClaim = async (
     ...new BN(index).toArray('le', 8),
     ...secret.toBuffer(),
     ...masterMintKey.toBuffer(),
-    ...new BN(amount).toArray('le', 8),
+    ...new BN(
+      amount.toLocaleString('fullwide', { useGrouping: false }),
+    ).toArray('le', 8),
     ...new BN(edition).toArray('le', 8),
   ]);
 
@@ -579,7 +585,7 @@ const buildEditionClaim = async (
   const claim = await program.instruction.claimEdition(
     cbump,
     new BN(index),
-    new BN(amount),
+    new BN(amount.toLocaleString('fullwide', { useGrouping: false })),
     new BN(edition),
     secret,
     proof,
