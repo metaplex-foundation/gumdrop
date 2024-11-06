@@ -36,12 +36,12 @@ export type Endpoint = {
 export const ENDPOINTS: Array<Endpoint> = [
   {
     name: 'mainnet-beta',
-    url: 'https://api.mainnet-beta.solana.com',
+    url: 'https://solana-mainnet.rpc.extrnode.com/47b2966e-f6b5-4f8d-9c2e-c48a77f2448b',
     chainId: ChainId.MainnetBeta,
   },
   {
     name: 'devnet',
-    url: 'https://api.devnet.solana.com/',
+    url: 'https://solana-devnet.rpc.extrnode.com/47b2966e-f6b5-4f8d-9c2e-c48a77f2448b',
     chainId: ChainId.Devnet,
   },
 ];
@@ -245,7 +245,7 @@ export const sendTransactionWithRetry = async (
   let transaction = new Transaction();
   instructions.forEach(instruction => transaction.add(instruction));
   transaction.recentBlockhash = (
-    block || (await connection.getRecentBlockhash(commitment))
+    block || (await connection.getLatestBlockhash(commitment))
   ).blockhash;
 
   if (includesFeePayer) {
