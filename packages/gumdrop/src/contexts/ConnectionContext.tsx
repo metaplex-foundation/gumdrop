@@ -36,12 +36,12 @@ export type Endpoint = {
 export const ENDPOINTS: Array<Endpoint> = [
   {
     name: 'mainnet-beta',
-    url: 'https://solana-mainnet.rpc.extrnode.com/47b2966e-f6b5-4f8d-9c2e-c48a77f2448b',
+    url: 'https://api.mainnet-beta.solana.com',
     chainId: ChainId.MainnetBeta,
   },
   {
     name: 'devnet',
-    url: 'https://solana-devnet.rpc.extrnode.com/47b2966e-f6b5-4f8d-9c2e-c48a77f2448b',
+    url: 'https://api.devnet.solana.com/',
     chainId: ChainId.Devnet,
   },
 ];
