@@ -931,7 +931,7 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
     };
 
     const recentBlockhash = (
-      await connection.getRecentBlockhash('singleGossip')
+      await connection.getLatestBlockhash('singleGossip')
     ).blockhash;
     let setupTx: Transaction | null = null;
     if (instructions.setup !== null && instructions.setup.length !== 0) {
