@@ -28,7 +28,7 @@
     "@solana/wallet-adapter-base": "0.5.1",
     "@solana/wallet-adapter-react": "^0.8.1",
     "@solana/wallet-adapter-wallets": "0.8.1",
-    "@solana/web3.js": "1.41.3",
+    "@solana/web3.js": "1.95.8",
     "@types/crypto-js": "^4.0.2",
     "@types/jest": "^27.0.3",
     "@types/mime": "2.0.3",
