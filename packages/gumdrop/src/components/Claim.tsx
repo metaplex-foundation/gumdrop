@@ -174,6 +174,13 @@ const buildMintClaim = async (
     GUMDROP_DISTRIBUTOR_ID,
   );
 
+  const claimStatusAccount = await program.provider.connection.getAccountInfo(
+    claimStatus,
+  );
+  if (claimStatusAccount !== null) {
+    throw new Error(`This was already claimed`);
+  }
+
   const setup: Array<TransactionInstruction> = [];
 
   const walletTokenKey = await getATA(walletKey, mint);
@@ -931,7 +938,7 @@ export const Claim = (props: RouteComponentProps<ClaimProps>) => {
     };
 
     const recentBlockhash = (
-      await connection.getRecentBlockhash('singleGossip')
+      await connection.getLatestBlockhash('singleGossip')
     ).blockhash;
     let setupTx: Transaction | null = null;
     if (instructions.setup !== null && instructions.setup.length !== 0) {
