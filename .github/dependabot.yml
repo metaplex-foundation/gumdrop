@@ -1,13 +1,12 @@
 version: 2
 updates:
-  - package-ecosystem: cargo
-    directory: "/"
+  # We use pnpm for package management.
+  - package-ecosystem: 'npm'
+    # We only have a package.json in the root.
+    directory: '/'
+    # Check weekly to prevent too many PRs.
     schedule:
-      interval: daily
-      time: "04:00"
-      timezone: America/Los_Angeles
-    labels:
-      - "automerge"
-    open-pull-requests-limit: 3
-    ignore:
-      - dependency-name: "cbindgen"
+      interval: 'weekly'
+    allow:
+      # Starting slow by only checking our own packages for updates.
+      - dependency-name: '@metaplex-foundation/*'
