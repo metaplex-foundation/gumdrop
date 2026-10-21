@@ -5,7 +5,7 @@ See the [Metaplex Docs](https://docs.metaplex.com/airdrops/create-gumdrop) and t
 
 ## Setup
 
-Be sure to be running Node v14.17.6 and yarn version 1.22.10.
+Be sure to be running Node v22.23.4 (see `.tool-versions`) and yarn version 1.22.10.
 
 `yarn bootstrap`
 
